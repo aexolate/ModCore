@@ -193,5 +193,29 @@ namespace ModCore.Commands
             await m.RevokeRoleAsync(mute, $"{ustr}{rstr} (unmute)");
             await ctx.RespondAsync($"Unmuted user {m.DisplayName} (ID:{m.Id}) { (reason != "" ? "With reason: " + reason : "")}");
         }
+
+        [Command("userinfo"), Aliases("ui")]
+        public async Task UserInfo(CommandContext ctx, DiscordMember usr)
+        {
+            var target = await ctx.Guild.GetMemberAsync(usr.Id);
+
+            string roles = "";
+            foreach (DiscordRole r in target.Roles) { roles += $"{r.Name}, "; }
+            if (roles == "") roles = "None";
+
+            string perms = target.PermissionsIn(ctx.Channel).ToPermissionString();
+            if (perms == "") perms = "None";
+
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(DiscordColor.DarkBlue)
+                .AddField($"@{target.Username}#{target.Discriminator}",
+                $"UserID: {target.Id}\n" +
+                $"Date Joined: {target.JoinedAt.Day}/{target.JoinedAt.Month}/{target.JoinedAt.Year}\n" +
+                $"Bot Account: {target.IsBot}")
+                .AddField("Roles", roles)
+                .AddField($"Permissions [{ctx.Channel}]", perms);
+
+            await ctx.RespondAsync("", false, embed: embed);
+        }
     }
 }
